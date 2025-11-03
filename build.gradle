@@ -1,6 +1,6 @@
 plugins {
     id 'com.gradleup.shadow' version "${shadow_version}"
-    id 'fabric-loom' version "${fabric_loom_version}"
+    id 'net.neoforged.gradle.userdev' version "${neogradle_version}"
     id 'mod-update' version "${mod_update_version}"
     id 'com.matthewprenger.cursegradle' version "${cursegradle_version}"
     id 'com.modrinth.minotaur' version "${minotaur_version}"
@@ -14,19 +14,33 @@ repositories {
 
 dependencies {
     implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
-    modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
+    runtimeOnly "maven.modrinth:simple-voice-chat:neoforge-${voicechat_mod_version}"
 
-    include(modImplementation("maven.modrinth:admiral:${admiral_version}+fabric"))
-    modImplementation "me.lucko:fabric-permissions-api:${fabric_permission_api_version}"
+    jarJar(implementation("maven.modrinth:admiral:${admiral_version}+neoforge"))
+}
+
+runs {
+    configureEach {
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+    }
+    
+    client {
+        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+    }
+    
+    server {
+        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+        programArgument '--nogui'
+    }
 }
 
 processResources {
-    filesMatching('fabric.mod.json') {
+    filesMatching('META-INF/neoforge.mods.toml') {
         expand 'mod_version': mod_version,
                 'minecraft_dependency': minecraft_dependency,
                 'minecraft_version': minecraft_version,
-                'fabric_loader_dependency': fabric_loader_dependency,
-                'fabric_api_dependency_breaks': fabric_api_dependency_breaks,
+                'neoforge_dependency': neoforge_dependency,
                 'voicechat_api_version': voicechat_api_version
     }
 }

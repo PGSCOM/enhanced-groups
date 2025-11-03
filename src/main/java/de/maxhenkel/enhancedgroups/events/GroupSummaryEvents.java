@@ -4,13 +4,12 @@ import de.maxhenkel.enhancedgroups.EnhancedGroups;
 import de.maxhenkel.enhancedgroups.EnhancedGroupsVoicechatPlugin;
 import de.maxhenkel.voicechat.api.Group;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
-import net.fabricmc.fabric.api.networking.v1.PacketSender;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.*;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +18,14 @@ import java.util.UUID;
 public class GroupSummaryEvents {
 
     public static void init() {
-        ServerPlayConnectionEvents.JOIN.register(GroupSummaryEvents::onJoin);
+        NeoForge.EVENT_BUS.addListener(GroupSummaryEvents::onPlayerLoggedIn);
     }
 
-    private static void onJoin(ServerGamePacketListenerImpl serverGamePacketListener, PacketSender packetSender, MinecraftServer server) {
+    private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        
         if (!EnhancedGroups.CONFIG.groupSummary.get()) {
             return;
         }
@@ -33,8 +36,8 @@ public class GroupSummaryEvents {
         Map<UUID, Group> groups = new HashMap<>();
         int playersInGroups = 0;
 
-        for (Player player : server.getPlayerList().getPlayers()) {
-            VoicechatConnection connection = EnhancedGroupsVoicechatPlugin.SERVER_API.getConnectionOf(player.getUUID());
+        for (Player serverPlayer : player.getServer().getPlayerList().getPlayers()) {
+            VoicechatConnection connection = EnhancedGroupsVoicechatPlugin.SERVER_API.getConnectionOf(serverPlayer.getUUID());
             if (connection == null) {
                 continue;
             }
@@ -71,7 +74,7 @@ public class GroupSummaryEvents {
         }
 
 
-        serverGamePacketListener.player.sendSystemMessage(component);
+        player.sendSystemMessage(component);
     }
 
 }
