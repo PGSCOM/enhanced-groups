@@ -1,0 +1,33 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="ARR"
+
+[[mods]]
+modId="enhancedgroups"
+version="${mod_version}"
+displayName="Simple Voice Chat Enhanced Groups"
+description="Instantly create and join groups"
+logoFile="icon.png"
+authors="Max Henkel"
+displayURL="https://modrepo.de/"
+
+[[dependencies.enhancedgroups]]
+modId="neoforge"
+type="required"
+versionRange="${neoforge_dependency}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.enhancedgroups]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_dependency}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.enhancedgroups]]
+modId="voicechat"
+type="required"
+versionRange=">=1.21-2.5.0"
+ordering="NONE"
+side="BOTH"

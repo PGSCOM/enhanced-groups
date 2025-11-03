@@ -1,32 +1,84 @@
 plugins {
-    id 'com.gradleup.shadow' version "${shadow_version}"
-    id 'fabric-loom' version "${fabric_loom_version}"
-    id 'mod-update' version "${mod_update_version}"
-    id 'com.matthewprenger.cursegradle' version "${cursegradle_version}"
-    id 'com.modrinth.minotaur' version "${minotaur_version}"
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.27-beta'
 }
 
-apply from: "https://raw.githubusercontent.com/henkelmax/mod-gradle-scripts/${mod_gradle_script_version}/mod.gradle"
+version = project.mod_version
+group = 'de.maxhenkel.enhancedgroups'
+
+base {
+    archivesName = "${project.mod_id}-neoforge-${project.minecraft_version}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
+
+neoForge {
+    version = project.neoforge_version
+    
+    validateAccessTransformers = true
+    
+    runs {
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+        server {
+            server()
+            gameDirectory = file('run/server')
+            programArgument '--nogui'
+        }
+    }
+    
+    mods {
+        enhancedgroups {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
 
 repositories {
-
+    mavenCentral()
+    maven { 
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases' 
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+    }
+    maven {
+        name = 'Maxhenkel Public'
+        url = 'https://maven.maxhenkel.de/repository/public'
+    }
 }
 
 dependencies {
     implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
-    modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
+    compileOnly "maven.modrinth:simple-voice-chat:neoforge-${voicechat_mod_version}"
+    
+    implementation "maven.modrinth:admiral:${admiral_version}+neoforge"
+    jarJar("maven.modrinth:admiral:${admiral_version}+neoforge")
+    
+    implementation "de.maxhenkel.configbuilder:configbuilder:2.0.2"
+    jarJar("de.maxhenkel.configbuilder:configbuilder:2.0.2")
+}
 
-    include(modImplementation("maven.modrinth:admiral:${admiral_version}+fabric"))
-    modImplementation "me.lucko:fabric-permissions-api:${fabric_permission_api_version}"
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 processResources {
-    filesMatching('fabric.mod.json') {
-        expand 'mod_version': mod_version,
-                'minecraft_dependency': minecraft_dependency,
-                'minecraft_version': minecraft_version,
-                'fabric_loader_dependency': fabric_loader_dependency,
-                'fabric_api_dependency_breaks': fabric_api_dependency_breaks,
-                'voicechat_api_version': voicechat_api_version
+    inputs.property 'mod_version', project.mod_version
+    inputs.property 'minecraft_dependency', project.minecraft_dependency
+    inputs.property 'neoforge_dependency', project.neoforge_dependency
+    inputs.property 'voicechat_api_version', project.voicechat_api_version
+    
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand([
+            'mod_version': project.mod_version,
+            'minecraft_dependency': project.minecraft_dependency,
+            'neoforge_dependency': project.neoforge_dependency,
+            'voicechat_api_version': project.voicechat_api_version
+        ])
     }
 }
